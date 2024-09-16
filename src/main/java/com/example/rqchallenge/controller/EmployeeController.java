@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-public interface IEmployeeController {
+public class EmployeeController {
 
     // @GetMapping()
     // ResponseEntity<List<Employee>> getAllEmployees() throws IOException;
