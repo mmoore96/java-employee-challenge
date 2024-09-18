@@ -72,5 +72,40 @@ public class EmployeeControllerTest {
         // Verify that the service method was called once
         verify(employeeService, times(1)).getAllEmployees();
     }
+
+    // Test for searching employees by name
+    @Test
+    public void testGetEmployeesByNameSearch_ReturnsMatchingEmployees() throws Exception {
+        // Arrange
+        Employee employee1 = new Employee("1", "John Doe", "50000", "30", "");
+        Employee employee2 = new Employee("2", "Jane Smith", "60000", "25", "");
+        List<Employee> employeeList = Arrays.asList(employee1, employee2);
+
+        when(employeeService.getEmployeesByNameSearch("John")).thenReturn(Arrays.asList(employee1));
+
+        // Act & Assert
+        mockMvc.perform(get("/v1/employees/search/John")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(1))
+                .andExpect(jsonPath("$[0].employee_name").value("John Doe"));
+
+        // Verify that the service method was called once
+        verify(employeeService, times(1)).getEmployeesByNameSearch("John");
+    }
+
+    @Test
+    public void testGetEmployeesByNameSearch_NoMatch() throws Exception {
+        // Arrange
+        when(employeeService.getEmployeesByNameSearch("Mike")).thenReturn(Arrays.asList());
+
+        // Act & Assert
+        mockMvc.perform(get("/v1/employees/search/Mike")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        // Verify that the service method was called once
+        verify(employeeService, times(1)).getEmployeesByNameSearch("Mike");
+    }
 }
 

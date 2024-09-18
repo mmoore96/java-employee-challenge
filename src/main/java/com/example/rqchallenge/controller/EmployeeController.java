@@ -47,9 +47,27 @@ public class EmployeeController {
             return ResponseEntity.ok(employees);
         }
     }
-    //
-    // @GetMapping("/search/{searchString}")
-    // ResponseEntity<List<Employee>> getEmployeesByNameSearch(@PathVariable String searchString);
+
+    /**
+     * Search for employees by name.
+     *
+     * @param searchString The string to search for in employee names.
+     * @return ResponseEntity containing the list of matching employees.
+     */
+    @GetMapping("/employees/search/{searchString}")
+    public ResponseEntity<List<Employee>> getEmployeesByNameSearch(@PathVariable String searchString) {
+        logger.info("Received request to search employees by name containing '{}'.", searchString);
+
+        List<Employee> employees = employeeService.getEmployeesByNameSearch(searchString);
+
+        if (employees.isEmpty()) {
+            logger.warn("No employees found matching '{}'.", searchString);
+            return ResponseEntity.noContent().build();
+        } else {
+            logger.info("Returning {} employees matching '{}'.", employees.size(), searchString);
+            return ResponseEntity.ok(employees);
+        }
+    }
     //
     // @GetMapping("/{id}")
     // ResponseEntity<Employee> getEmployeeById(@PathVariable String id);
