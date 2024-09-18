@@ -141,6 +141,28 @@ public class EmployeeService {
       }
     }
 
+    // Method to get the highest salary of employees
+    public int getHighestSalaryOfEmployees() {
+        logger.info("Fetching the highest salary of employees.");
+
+        // Fetch all employees
+        List<Employee> allEmployees = getAllEmployees();
+
+        if (allEmployees.isEmpty()) {
+            logger.warn("No employees found to determine the highest salary. Returning 0.");
+            return 0;  // Return 0 if no employees are available
+        }
+
+        // Find the employee with the highest salary
+        int highestSalary = allEmployees.stream()
+                .mapToInt(employee -> Integer.parseInt(employee.getEmployeeSalary()))
+                .max()
+                .orElse(0);  // Default to 0 if no employees are available
+
+        logger.info("The highest salary of employees is {}", highestSalary);
+        return highestSalary;
+    }
+
     // Setter for baseUrl (for testing purposes)
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;

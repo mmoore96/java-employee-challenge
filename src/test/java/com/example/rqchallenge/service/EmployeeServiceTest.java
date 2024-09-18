@@ -225,5 +225,59 @@ public class EmployeeServiceTest {
                 any(ParameterizedTypeReference.class)
         );
     }
+
+    @Test
+    public void testGetHighestSalaryOfEmployees_Success() {
+        // Arrange
+        Employee employee1 = new Employee("1", "John Doe", "50000", "30", "");
+        Employee employee2 = new Employee("2", "Jane Smith", "60000", "25", "");
+        Employee employee3 = new Employee("3", "Mike Tyson", "70000", "35", "");
+        List<Employee> employeeList = Arrays.asList(employee1, employee2, employee3);
+
+        EmployeeApiResponse<List<Employee>> apiResponse = new EmployeeApiResponse<>("success", employeeList);
+
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenReturn(ResponseEntity.ok(apiResponse));
+
+        // Act
+        int result = employeeService.getHighestSalaryOfEmployees();
+
+        // Assert
+        assertEquals(70000, result);  // The highest salary should be 70000
+        verify(restTemplate, times(1)).exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
+
+    @Test
+    public void testGetHighestSalaryOfEmployees_ConnectionError() {
+        // Arrange
+        // Simulate a ResourceAccessException (connection failure)
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenThrow(new ResourceAccessException("Connection refused"));
+
+        // Act
+        int result = employeeService.getHighestSalaryOfEmployees();
+
+        // Assert
+        assertEquals(725000, result);  // Highest salary in the default list is 725000
+        verify(restTemplate, times(1)).exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
 }
 
