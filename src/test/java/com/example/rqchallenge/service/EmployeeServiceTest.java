@@ -11,6 +11,7 @@ import org.springframework.web.client.RestTemplate;
 import org.springframework.core.ParameterizedTypeReference;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.HttpMethod;
+import org.springframework.web.client.ResourceAccessException;
 
 import java.util.Arrays;
 import java.util.List;
@@ -60,5 +61,31 @@ public class EmployeeServiceTest {
                 any(ParameterizedTypeReference.class)
         );
     }
+
+    @Test
+    public void testGetAllEmployees_ConnectionError() {
+        // Arrange
+        // Simulate a ResourceAccessException (connection failure)
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenThrow(new ResourceAccessException("Connection refused"));
+
+        // Act
+        List<Employee> result = employeeService.getAllEmployees();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(24, result.size());  // Default employee list has 24 employees
+        verify(restTemplate, times(1)).exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
+
 }
 
