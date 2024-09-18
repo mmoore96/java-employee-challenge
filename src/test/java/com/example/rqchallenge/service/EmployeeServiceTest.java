@@ -149,5 +149,81 @@ public class EmployeeServiceTest {
                 any(ParameterizedTypeReference.class)
         );
     }
+
+    @Test
+    public void testGetEmployeeById_Success() {
+        // Arrange
+        Employee employee = new Employee("1", "John Doe", "50000", "30", "");
+        EmployeeApiResponse<Employee> apiResponse = new EmployeeApiResponse<>("success", employee);
+
+        when(restTemplate.exchange(
+                eq("https://dummy.restapiexample.com/api/v1/employee/1"),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenReturn(ResponseEntity.ok(apiResponse));
+
+        // Act
+        Employee result = employeeService.getEmployeeById("1");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals("John Doe", result.getEmployeeName());
+        verify(restTemplate, times(1)).exchange(
+                eq("https://dummy.restapiexample.com/api/v1/employee/1"),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
+
+    @Test
+    public void testGetEmployeeById_NotFound() {
+        // Arrange
+        EmployeeApiResponse<Employee> apiResponse = new EmployeeApiResponse<>("error", null);
+
+        when(restTemplate.exchange(
+                eq("https://dummy.restapiexample.com/api/v1/employee/999"),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenReturn(ResponseEntity.status(404).body(apiResponse));
+
+        // Act
+        Employee result = employeeService.getEmployeeById("999");
+
+        // Assert
+        assertNull(result);  // Employee should not be found
+        verify(restTemplate, times(1)).exchange(
+                eq("https://dummy.restapiexample.com/api/v1/employee/999"),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
+
+    @Test
+    public void testGetEmployeeById_ConnectionError() {
+        // Arrange
+        when(restTemplate.exchange(
+                eq("https://dummy.restapiexample.com/api/v1/employee/1"),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenThrow(new ResourceAccessException("Connection refused"));
+
+        // Act
+        Employee result = employeeService.getEmployeeById("1");
+
+        // Assert
+        assertNotNull(result);  // Should return a default employee, not null
+        assertEquals("Tiger Nixon", result.getEmployeeName());  // Verify it's from the default list
+        verify(restTemplate, times(1)).exchange(
+                eq("https://dummy.restapiexample.com/api/v1/employee/1"),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
 }
 

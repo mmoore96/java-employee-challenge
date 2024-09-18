@@ -95,6 +95,52 @@ public class EmployeeService {
         return filteredEmployees;
     }
 
+    // Method to get an employee by ID
+    public Employee getEmployeeById(String id) {
+      String url = baseUrl + "/employee/" + id;
+      logger.info("Fetching employee with ID {} from {}", id, url);
+
+      try {
+          ResponseEntity<EmployeeApiResponse<Employee>> responseEntity = restTemplate.exchange(
+                  url,
+                  HttpMethod.GET,
+                  null,
+                  new ParameterizedTypeReference<EmployeeApiResponse<Employee>>() {}
+          );
+
+          HttpStatus statusCode = responseEntity.getStatusCode();
+          if (!statusCode.is2xxSuccessful()) {
+              logger.error("Received non-2xx status code: {} while fetching employee with ID {}. Falling back to default employee list.", statusCode, id);
+              return getEmployeeFromDefaultList(id);  // Return from default list if the response status is not successful
+          }
+
+          EmployeeApiResponse<Employee> response = responseEntity.getBody();
+
+          if (response != null && "success".equalsIgnoreCase(response.getStatus())) {
+              logger.debug("Successfully retrieved employee: {}", response.getData());
+              return response.getData();
+          } else {
+              logger.warn("Failed to retrieve employee with ID {}. Status: {}. Falling back to default employee list.", id, response != null ? response.getStatus() : "null");
+              return getEmployeeFromDefaultList(id);  // Fallback to default list if the API call fails
+          }
+
+      } catch (ResourceAccessException e) {
+          // Handle connection failures specifically
+          logger.error("Connection error fetching employee with ID {}: {}. Falling back to default employee list.", id, e.getMessage());
+          return getEmployeeFromDefaultList(id);  // Fallback to default list in case of connection issues
+
+      } catch (HttpStatusCodeException e) {
+          // Catch any HTTP error that isn't a 2xx success response
+          logger.error("HTTP error fetching employee with ID {} ({}): {}. Falling back to default employee list.", id, e.getStatusCode(), e.getMessage());
+          return getEmployeeFromDefaultList(id);  // Fallback to default list in case of HTTP errors
+
+      } catch (Exception e) {
+          // Handle any other exceptions
+          logger.error("Error fetching employee with ID {}: {}. Falling back to default employee list.", id, e.getMessage());
+          return getEmployeeFromDefaultList(id);  // Fallback to default list in case of any other exceptions
+      }
+    }
+
     // Setter for baseUrl (for testing purposes)
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
@@ -129,6 +175,15 @@ public class EmployeeService {
         new Employee("24", "Doris Wilder", "85600", "23", "")
       };
       return Arrays.asList(employees);
+    }
+
+    // Helper method to get an employee from the default list based on ID
+    private Employee getEmployeeFromDefaultList(String id) {
+      List<Employee> defaultEmployees = getDefaultEmployeeList();
+      return defaultEmployees.stream()
+              .filter(employee -> employee.getId().equals(id))
+              .findFirst()
+              .orElse(null);  // Return null if no match is found in the default list
     }
 }
 
