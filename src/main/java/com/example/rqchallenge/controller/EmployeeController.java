@@ -68,9 +68,27 @@ public class EmployeeController {
             return ResponseEntity.ok(employees);
         }
     }
-    //
-    // @GetMapping("/{id}")
-    // ResponseEntity<Employee> getEmployeeById(@PathVariable String id);
+
+    /**
+     * Get an employee by ID.
+     *
+     * @param id The ID of the employee to retrieve.
+     * @return ResponseEntity containing the employee or a 404 status if not found.
+     */
+    @GetMapping("/employees/{id}")
+    public ResponseEntity<Employee> getEmployeeById(@PathVariable String id) {
+        logger.info("Received request to get employee by ID '{}'.", id);
+
+        Employee employee = employeeService.getEmployeeById(id);
+
+        if (employee == null) {
+            logger.warn("Employee with ID '{}' not found.", id);
+            return ResponseEntity.notFound().build();
+        } else {
+            logger.info("Returning employee with ID '{}'.", id);
+            return ResponseEntity.ok(employee);
+        }
+    }
     //
     // @GetMapping("/highestSalary")
     // ResponseEntity<Integer> getHighestSalaryOfEmployees();

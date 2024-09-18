@@ -107,5 +107,37 @@ public class EmployeeControllerTest {
         // Verify that the service method was called once
         verify(employeeService, times(1)).getEmployeesByNameSearch("Mike");
     }
+
+    // Test for getting employee by ID
+    @Test
+    public void testGetEmployeeById_EmployeeFound() throws Exception {
+        // Arrange
+        Employee employee = new Employee("1", "John Doe", "50000", "30", "");
+
+        when(employeeService.getEmployeeById("1")).thenReturn(employee);
+
+        // Act & Assert
+        mockMvc.perform(get("/v1/employees/1")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.employee_name").value("John Doe"));
+
+        // Verify that the service method was called once
+        verify(employeeService, times(1)).getEmployeeById("1");
+    }
+
+    @Test
+    public void testGetEmployeeById_EmployeeNotFound() throws Exception {
+        // Arrange
+        when(employeeService.getEmployeeById("99")).thenReturn(null);
+
+        // Act & Assert
+        mockMvc.perform(get("/v1/employees/99")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        // Verify that the service method was called once
+        verify(employeeService, times(1)).getEmployeeById("99");
+    }
 }
 
