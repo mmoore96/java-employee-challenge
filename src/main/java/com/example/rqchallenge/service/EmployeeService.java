@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Service
 public class EmployeeService {
@@ -65,6 +66,7 @@ public class EmployeeService {
             // Handle connection failures specifically
             logger.error("Connection error fetching employees: {}. Falling back to default employee list.", e.getMessage());
             return getDefaultEmployeeList();  // Fallback to default employee list
+
         } catch (HttpStatusCodeException e) {
             // Catch any HTTP error that isn't a 2xx success response
             logger.error("HTTP error fetching employees ({}): {}. Falling back to default employee list.",
@@ -75,6 +77,22 @@ public class EmployeeService {
             logger.error("Error fetching employees: {}. Falling back to default employee list.", e.getMessage());
             return getDefaultEmployeeList();  // Fallback to default employee list
         }
+    }
+
+    // Method to search employees by name
+    public List<Employee> getEmployeesByNameSearch(String searchString) {
+        logger.info("Searching for employees with name containing '{}'", searchString);
+
+        // Fetch all employees
+        List<Employee> allEmployees = getAllEmployees();
+
+        // Filter employees whose name contains the search string (case insensitive)
+        List<Employee> filteredEmployees = allEmployees.stream()
+                .filter(employee -> employee.getEmployeeName().toLowerCase().contains(searchString.toLowerCase()))
+                .collect(Collectors.toList());
+
+        logger.debug("Found {} employees matching the search string '{}'", filteredEmployees.size(), searchString);
+        return filteredEmployees;
     }
 
     // Setter for baseUrl (for testing purposes)

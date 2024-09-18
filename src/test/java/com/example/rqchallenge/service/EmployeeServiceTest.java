@@ -87,5 +87,67 @@ public class EmployeeServiceTest {
         );
     }
 
+    @Test
+    public void testGetEmployeesByNameSearch_MatchFound() {
+        // Arrange
+        Employee employee1 = new Employee("1", "John Doe", "50000", "30", "");
+        Employee employee2 = new Employee("2", "Jane Smith", "60000", "25", "");
+        List<Employee> employeeList = Arrays.asList(employee1, employee2);
+
+        EmployeeApiResponse<List<Employee>> apiResponse = new EmployeeApiResponse<>("success", employeeList);
+
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenReturn(ResponseEntity.ok(apiResponse));
+
+        // Act
+        List<Employee> result = employeeService.getEmployeesByNameSearch("John");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(1, result.size());
+        assertEquals("John Doe", result.get(0).getEmployeeName());
+
+        verify(restTemplate, times(1)).exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
+
+    @Test
+    public void testGetEmployeesByNameSearch_NoMatch() {
+        // Arrange
+        Employee employee1 = new Employee("1", "John Doe", "50000", "30", "");
+        Employee employee2 = new Employee("2", "Jane Smith", "60000", "25", "");
+        List<Employee> employeeList = Arrays.asList(employee1, employee2);
+
+        EmployeeApiResponse<List<Employee>> apiResponse = new EmployeeApiResponse<>("success", employeeList);
+
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenReturn(ResponseEntity.ok(apiResponse));
+
+        // Act
+        List<Employee> result = employeeService.getEmployeesByNameSearch("Mike");
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(0, result.size());  // No employee matches "Mike"
+
+        verify(restTemplate, times(1)).exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
 }
 
