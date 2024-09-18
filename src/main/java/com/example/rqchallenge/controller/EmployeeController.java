@@ -89,9 +89,26 @@ public class EmployeeController {
             return ResponseEntity.ok(employee);
         }
     }
-    //
-    // @GetMapping("/highestSalary")
-    // ResponseEntity<Integer> getHighestSalaryOfEmployees();
+
+    /**
+     * Get the highest salary of all employees.
+     *
+     * @return ResponseEntity containing the highest salary as an integer.
+     */
+    @GetMapping("/employees/highestSalary")
+    public ResponseEntity<Integer> getHighestSalaryOfEmployees() {
+        logger.info("Received request to get the highest salary of employees.");
+
+        int highestSalary = employeeService.getHighestSalaryOfEmployees();
+
+        if (highestSalary == 0) {
+            logger.warn("No employees found or could not retrieve the highest salary.");
+            return ResponseEntity.noContent().build();
+        } else {
+            logger.info("Returning the highest salary: {}", highestSalary);
+            return ResponseEntity.ok(highestSalary);
+        }
+    }
     //
     // @GetMapping("/topTenHighestEarningEmployeeNames")
     // ResponseEntity<List<String>> getTopTenHighestEarningEmployeeNames();

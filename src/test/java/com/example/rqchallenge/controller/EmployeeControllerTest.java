@@ -139,5 +139,34 @@ public class EmployeeControllerTest {
         // Verify that the service method was called once
         verify(employeeService, times(1)).getEmployeeById("99");
     }
+
+    @Test
+    public void testGetHighestSalaryOfEmployees_ReturnsHighestSalary() throws Exception {
+        // Arrange
+        when(employeeService.getHighestSalaryOfEmployees()).thenReturn(50000);
+
+        // Act & Assert
+        mockMvc.perform(get("/v1/employees/highestSalary")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string("50000"));  // Check that the response body is the highest salary
+
+        // Verify that the service method was called once
+        verify(employeeService, times(1)).getHighestSalaryOfEmployees();
+    }
+
+    @Test
+    public void testGetHighestSalaryOfEmployees_NoContent() throws Exception {
+        // Arrange
+        when(employeeService.getHighestSalaryOfEmployees()).thenReturn(0);  // Simulate no employees or no salary found
+
+        // Act & Assert
+        mockMvc.perform(get("/v1/employees/highestSalary")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        // Verify that the service method was called once
+        verify(employeeService, times(1)).getHighestSalaryOfEmployees();
+    }
 }
 
