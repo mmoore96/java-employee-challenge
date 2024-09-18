@@ -1,17 +1,52 @@
 package com.example.rqchallenge.employees;
 
+import com.example.rqchallenge.model.Employee;
+import com.example.rqchallenge.service.EmployeeService;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.util.List;
 import java.util.Map;
 
 @RestController
+@RequestMapping("/v1")
 public class EmployeeController {
 
-    // @GetMapping()
-    // ResponseEntity<List<Employee>> getAllEmployees() throws IOException;
+    private static final Logger logger = LoggerFactory.getLogger(EmployeeController.class);
+
+    private final EmployeeService employeeService;
+
+    @Autowired
+    public EmployeeController(EmployeeService employeeService) {
+        this.employeeService = employeeService;
+    }
+
+    /**
+     * Get all employees.
+     *
+     * @return ResponseEntity containing the list of employees.
+     * @throws IOException
+     */
+    @GetMapping("/employees")
+    public ResponseEntity<List<Employee>> getAllEmployees() throws IOException {
+        logger.info("Received request to get all employees.");
+
+        List<Employee> employees = employeeService.getAllEmployees();
+
+        if (employees.isEmpty()) {
+            logger.warn("No employees found.");
+            return ResponseEntity.noContent().build();
+        } else {
+            logger.info("Returning {} employees.", employees.size());
+            return ResponseEntity.ok(employees);
+        }
+    }
     //
     // @GetMapping("/search/{searchString}")
     // ResponseEntity<List<Employee>> getEmployeesByNameSearch(@PathVariable String searchString);
