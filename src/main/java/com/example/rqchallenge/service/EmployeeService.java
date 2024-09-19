@@ -163,6 +163,30 @@ public class EmployeeService {
         return highestSalary;
     }
 
+    // Method to get the top 10 highest earning employee names
+    public List<String> getTop10HighestEarningEmployeeNames() {
+        logger.info("Fetching the top 10 highest earning employee names.");
+
+        // Fetch all employees
+        List<Employee> allEmployees = getAllEmployees();
+
+        if (allEmployees.isEmpty()) {
+            logger.warn("No employees found to determine the top 10 highest earners.");
+            return List.of();  // Return an empty list if no employees are available
+        }
+
+        // Sort employees by salary in descending order and get the top 10
+        List<String> top10EmployeeNames = allEmployees.stream()
+                .sorted((e1, e2) -> Integer.compare(Integer.parseInt(e2.getEmployeeSalary()), Integer.parseInt(e1.getEmployeeSalary())))
+                .limit(10)
+                .map(Employee::getEmployeeName)
+                .collect(Collectors.toList());
+
+        logger.info("Returning the top 10 highest earning employee names: {}", top10EmployeeNames);
+        return top10EmployeeNames;
+    }
+
+
     // Setter for baseUrl (for testing purposes)
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;

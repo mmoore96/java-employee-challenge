@@ -279,5 +279,72 @@ public class EmployeeServiceTest {
                 any(ParameterizedTypeReference.class)
         );
     }
+
+    @Test
+    public void testGetTop10HighestEarningEmployeeNames_Success() {
+        // Arrange
+        Employee employee1 = new Employee("1", "John Doe", "50000", "30", "");
+        Employee employee2 = new Employee("2", "Jane Smith", "60000", "25", "");
+        Employee employee3 = new Employee("3", "Mike Tyson", "70000", "35", "");
+        Employee employee4 = new Employee("4", "Bruce Wayne", "80000", "40", "");
+        Employee employee5 = new Employee("5", "Clark Kent", "90000", "32", "");
+        Employee employee6 = new Employee("6", "Diana Prince", "100000", "28", "");
+        Employee employee7 = new Employee("7", "Barry Allen", "110000", "27", "");
+        Employee employee8 = new Employee("8", "Hal Jordan", "120000", "36", "");
+        Employee employee9 = new Employee("9", "Arthur Curry", "130000", "33", "");
+        Employee employee10 = new Employee("10", "Victor Stone", "140000", "29", "");
+        Employee employee11 = new Employee("11", "Peter Parker", "150000", "26", "");
+        List<Employee> employeeList = Arrays.asList(employee1, employee2, employee3, employee4, employee5, employee6, employee7, employee8, employee9, employee10, employee11);
+
+        EmployeeApiResponse<List<Employee>> apiResponse = new EmployeeApiResponse<>("success", employeeList);
+
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenReturn(ResponseEntity.ok(apiResponse));
+
+        // Act
+        List<String> result = employeeService.getTop10HighestEarningEmployeeNames();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(10, result.size());
+        assertEquals("Peter Parker", result.get(0));  // Highest earner should be Peter Parker
+        assertEquals("Victor Stone", result.get(1));  // Second highest earner should be Victor Stone
+        verify(restTemplate, times(1)).exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
+
+    @Test
+    public void testGetTop10HighestEarningEmployeeNames_ConnectionError() {
+        // Arrange
+        // Simulate a ResourceAccessException (connection failure)
+        when(restTemplate.exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenThrow(new ResourceAccessException("Connection refused"));
+
+        // Act
+        List<String> result = employeeService.getTop10HighestEarningEmployeeNames();
+
+        // Assert
+        assertNotNull(result);
+        assertEquals(10, result.size());
+        assertEquals("Paul Byrd", result.get(0));  // Default list highest earner should be Paul Byrd
+        verify(restTemplate, times(1)).exchange(
+                anyString(),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
 }
 
