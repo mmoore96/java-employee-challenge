@@ -2,7 +2,10 @@ package com.example.rqchallenge.controller;
 
 import com.example.rqchallenge.employees.EmployeeController;
 import com.example.rqchallenge.model.Employee;
+import com.example.rqchallenge.model.CreateEmployeeRequest;
 import com.example.rqchallenge.service.EmployeeService;
+
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.BeforeEach;
@@ -22,6 +25,9 @@ import java.util.List;
 
 import static org.mockito.Mockito.*;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
@@ -34,8 +40,11 @@ public class EmployeeControllerTest {
     @MockBean
     private EmployeeService employeeService;
 
+    private ObjectMapper objectMapper;
+
     @BeforeEach
     public void setUp() {
+        objectMapper = new ObjectMapper();
     }
 
     @Test
@@ -205,6 +214,42 @@ public class EmployeeControllerTest {
 
         // Verify that the service method was called once
         verify(employeeService, times(1)).getTop10HighestEarningEmployeeNames();
+    }
+
+   @Test
+    public void testCreateEmployee_Success() throws Exception {
+        // Arrange
+        CreateEmployeeRequest createEmployeeRequest = new CreateEmployeeRequest("John Doe", "50000", "30");
+
+        when(employeeService.createEmployee(any(CreateEmployeeRequest.class))).thenReturn("success");
+
+        // Act & Assert
+        mockMvc.perform(post("/v1/employees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createEmployeeRequest)))  // Convert CreateEmployeeRequest to JSON
+                .andExpect(status().isOk())
+                .andExpect(content().string("success"));
+
+        // Verify that the service method was called once
+        verify(employeeService, times(1)).createEmployee(any(CreateEmployeeRequest.class));
+    }
+
+    @Test
+    public void testCreateEmployee_Failure() throws Exception {
+        // Arrange
+        CreateEmployeeRequest createEmployeeRequest = new CreateEmployeeRequest("John Doe", "50000", "30");
+
+        when(employeeService.createEmployee(any(CreateEmployeeRequest.class))).thenReturn("failure");
+
+        // Act & Assert
+        mockMvc.perform(post("/v1/employees")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(objectMapper.writeValueAsString(createEmployeeRequest)))  // Convert CreateEmployeeRequest to JSON
+                .andExpect(status().isInternalServerError())
+                .andExpect(content().string("Failed to create employee"));
+
+        // Verify that the service method was called once
+        verify(employeeService, times(1)).createEmployee(any(CreateEmployeeRequest.class));
     }
 }
 

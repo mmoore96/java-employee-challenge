@@ -1,6 +1,7 @@
 package com.example.rqchallenge.employees;
 
 import com.example.rqchallenge.model.Employee;
+import com.example.rqchallenge.model.CreateEmployeeRequest;
 import com.example.rqchallenge.service.EmployeeService;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -129,9 +130,28 @@ public class EmployeeController {
             return ResponseEntity.ok(top10Employees);
         }
     }
-    //
-    // @PostMapping()
-    // ResponseEntity<Employee> createEmployee(@RequestBody Map<String, Object> employeeInput);
+
+    /**
+     * Create a new employee.
+     *
+     * @param employeeRequest The request body containing the employee details.
+     * @return ResponseEntity containing the creation status.
+     */
+    @PostMapping("/employees")
+    public ResponseEntity<String> createEmployee(@RequestBody CreateEmployeeRequest employeeRequest) {
+        logger.info("Received request to create a new employee with Name: {}, Salary: {}, Age: {}",
+                employeeRequest.getName(), employeeRequest.getSalary(), employeeRequest.getAge());
+
+        String status = employeeService.createEmployee(employeeRequest);
+
+        if ("success".equals(status)) {
+            logger.info("Employee creation was successful.");
+            return ResponseEntity.ok("success");
+        } else {
+            logger.warn("Employee creation failed.");
+            return ResponseEntity.status(500).body("Failed to create employee");
+        }
+    }
     //
     // @DeleteMapping("/{id}")
     // ResponseEntity<String> deleteEmployeeById(@PathVariable String id);
