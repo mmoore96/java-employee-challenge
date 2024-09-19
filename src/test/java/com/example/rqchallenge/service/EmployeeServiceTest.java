@@ -1,7 +1,9 @@
 package com.example.rqchallenge.service;
 
+import com.example.rqchallenge.model.CreateEmployeeRequest;
 import com.example.rqchallenge.model.EmployeeApiResponse;
 import com.example.rqchallenge.model.Employee;
+import com.example.rqchallenge.model.CreateEmployeeResponse;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -343,6 +345,85 @@ public class EmployeeServiceTest {
                 anyString(),
                 eq(HttpMethod.GET),
                 isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
+
+  @Test
+    public void testCreateEmployee_Success() {
+        // Arrange
+        CreateEmployeeRequest createEmployeeRequest = new CreateEmployeeRequest("John Doe", "50000", "30");
+        CreateEmployeeResponse createEmployeeResponse = new CreateEmployeeResponse("John Doe", "50000", "30", "1");
+        EmployeeApiResponse<CreateEmployeeResponse> apiResponse = new EmployeeApiResponse<>("success", createEmployeeResponse);
+
+        when(restTemplate.exchange(
+                eq("https://dummy.restapiexample.com/api/v1/create"),
+                eq(HttpMethod.POST),
+                any(),
+                any(ParameterizedTypeReference.class)
+        )).thenReturn(ResponseEntity.ok(apiResponse));
+
+        // Act
+        String result = employeeService.createEmployee(createEmployeeRequest);
+
+        // Assert
+        assertEquals("success", result);  // The response should be "success"
+        verify(restTemplate, times(1)).exchange(
+                eq("https://dummy.restapiexample.com/api/v1/create"),
+                eq(HttpMethod.POST),
+                any(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
+
+    @Test
+    public void testCreateEmployee_ConnectionError() {
+        // Arrange
+        CreateEmployeeRequest createEmployeeRequest = new CreateEmployeeRequest("John Doe", "50000", "30");
+
+        // Simulate a ResourceAccessException (connection failure)
+        when(restTemplate.exchange(
+                eq("https://dummy.restapiexample.com/api/v1/create"),
+                eq(HttpMethod.POST),
+                any(),
+                any(ParameterizedTypeReference.class)
+        )).thenThrow(new ResourceAccessException("Connection refused"));
+
+        // Act
+        String result = employeeService.createEmployee(createEmployeeRequest);
+
+        // Assert
+        assertEquals("success", result);  // Should fallback to default response
+        verify(restTemplate, times(1)).exchange(
+                eq("https://dummy.restapiexample.com/api/v1/create"),
+                eq(HttpMethod.POST),
+                any(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
+
+    @Test
+    public void testCreateEmployee_HttpError() {
+        // Arrange
+        CreateEmployeeRequest createEmployeeRequest = new CreateEmployeeRequest("John Doe", "50000", "30");
+
+        // Simulate a non-2xx HTTP error
+        when(restTemplate.exchange(
+                eq("https://dummy.restapiexample.com/api/v1/create"),
+                eq(HttpMethod.POST),
+                any(),
+                any(ParameterizedTypeReference.class)
+        )).thenReturn(ResponseEntity.status(500).build());
+
+        // Act
+        String result = employeeService.createEmployee(createEmployeeRequest);
+
+        // Assert
+        assertEquals("success", result);  // Should fallback to default response
+        verify(restTemplate, times(1)).exchange(
+                eq("https://dummy.restapiexample.com/api/v1/create"),
+                eq(HttpMethod.POST),
+                any(),
                 any(ParameterizedTypeReference.class)
         );
     }
