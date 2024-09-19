@@ -109,9 +109,26 @@ public class EmployeeController {
             return ResponseEntity.ok(highestSalary);
         }
     }
-    //
-    // @GetMapping("/topTenHighestEarningEmployeeNames")
-    // ResponseEntity<List<String>> getTopTenHighestEarningEmployeeNames();
+
+    /**
+     * Get the top 10 highest earning employee names.
+     *
+     * @return ResponseEntity containing the list of top 10 highest earning employee names.
+     */
+    @GetMapping("/employees/top10HighestEarningEmployeeNames")
+    public ResponseEntity<List<String>> getTop10HighestEarningEmployeeNames() {
+        logger.info("Received request to get the top 10 highest earning employee names.");
+
+        List<String> top10Employees = employeeService.getTop10HighestEarningEmployeeNames();
+
+        if (top10Employees.isEmpty()) {
+            logger.warn("No employees found or could not retrieve the top 10 highest earning employees.");
+            return ResponseEntity.noContent().build();
+        } else {
+            logger.info("Returning the top 10 highest earning employee names.");
+            return ResponseEntity.ok(top10Employees);
+        }
+    }
     //
     // @PostMapping()
     // ResponseEntity<Employee> createEmployee(@RequestBody Map<String, Object> employeeInput);

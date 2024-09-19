@@ -168,5 +168,43 @@ public class EmployeeControllerTest {
         // Verify that the service method was called once
         verify(employeeService, times(1)).getHighestSalaryOfEmployees();
     }
+
+    @Test
+    public void testGetTop10HighestEarningEmployeeNames_ReturnsTop10Employees() throws Exception {
+        // Arrange
+        List<String> top10Employees = Arrays.asList(
+                "John Doe", "Jane Smith", "Mike Johnson", "Robert Brown", "Emily Davis",
+                "Jessica Wilson", "David Taylor", "Sarah Moore", "Daniel Clark", "Lisa White"
+        );
+
+        when(employeeService.getTop10HighestEarningEmployeeNames()).thenReturn(top10Employees);
+
+        // Act & Assert
+        mockMvc.perform(get("/v1/employees/top10HighestEarningEmployeeNames")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.length()").value(10))
+                .andExpect(jsonPath("$[0]").value("John Doe"))
+                .andExpect(jsonPath("$[1]").value("Jane Smith"))
+                .andExpect(jsonPath("$[2]").value("Mike Johnson"))
+                .andExpect(jsonPath("$[9]").value("Lisa White"));
+
+        // Verify that the service method was called once
+        verify(employeeService, times(1)).getTop10HighestEarningEmployeeNames();
+    }
+
+    @Test
+    public void testGetTop10HighestEarningEmployeeNames_NoContent() throws Exception {
+        // Arrange
+        when(employeeService.getTop10HighestEarningEmployeeNames()).thenReturn(Arrays.asList());
+
+        // Act & Assert
+        mockMvc.perform(get("/v1/employees/top10HighestEarningEmployeeNames")
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNoContent());
+
+        // Verify that the service method was called once
+        verify(employeeService, times(1)).getTop10HighestEarningEmployeeNames();
+    }
 }
 
