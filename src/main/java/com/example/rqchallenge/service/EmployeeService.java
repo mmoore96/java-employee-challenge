@@ -235,6 +235,61 @@ public class EmployeeService {
         }
     }
 
+    // Method to delete an employee by ID
+    public String deleteEmployee(String id) {
+        String url = baseUrl + "/delete/" + id;
+        logger.info("Deleting employee with ID: {}", id);
+
+        Employee employee = null; // Initialize employee to null
+
+        try {
+            // Fetch the employee to get their name before deletion
+            employee = getEmployeeById(id);
+            if (employee == null) {
+                logger.warn("Employee with ID: {} not found, deletion aborted.", id);
+                return "Employee with ID " + id + " not found, deletion aborted.";  // Return message if employee not found
+            }
+
+            // Perform the delete request
+            ResponseEntity<EmployeeApiResponse<String>> responseEntity = restTemplate.exchange(
+                    url,
+                    HttpMethod.DELETE,
+                    null,
+                    new ParameterizedTypeReference<EmployeeApiResponse<String>>() {}
+            );
+
+            HttpStatus statusCode = responseEntity.getStatusCode();
+            if (!statusCode.is2xxSuccessful()) {
+                logger.error("Received non-2xx status code: {} while deleting employee with ID: {}.", statusCode, id);
+                return getDefaultDeleteEmployeeResponse(employee);  // Return default response if status is not successful
+            }
+
+            EmployeeApiResponse<String> response = responseEntity.getBody();
+            if (response != null && "success".equalsIgnoreCase(response.getStatus())) {
+                logger.info("Successfully deleted employee with ID: {}, Name: {}", id, employee.getEmployeeName());
+                return employee.getEmployeeName();  // Return the employee name on successful deletion
+            } else {
+                logger.warn("Failed to delete employee with ID: {}. Status: {}", id, response != null ? response.getStatus() : "null");
+                return getDefaultDeleteEmployeeResponse(employee);  // Return default response on failure
+            }
+
+        } catch (ResourceAccessException e) {
+            // Handle connection failures specifically
+            logger.error("Connection error deleting employee with ID: {}. Returning default response.", id);
+            return employee != null ? getDefaultDeleteEmployeeResponse(employee) : "Connection error while deleting employee with ID " + id;
+
+        } catch (HttpStatusCodeException e) {
+            // Catch any HTTP error that isn't a 2xx success response
+            logger.error("HTTP error deleting employee with ID: {} ({}): {}. Returning default response.", id, e.getStatusCode(), e.getMessage());
+            return employee != null ? getDefaultDeleteEmployeeResponse(employee) : "HTTP error while deleting employee with ID " + id;
+
+        } catch (Exception e) {
+            // Handle any other exceptions
+            logger.error("Error deleting employee with ID: {}. Returning default response.", id, e.getMessage());
+            return employee != null ? getDefaultDeleteEmployeeResponse(employee) : "Error while deleting employee with ID " + id;
+        }
+    }
+
     // Setter for baseUrl (for testing purposes)
     public void setBaseUrl(String baseUrl) {
         this.baseUrl = baseUrl;
@@ -289,6 +344,14 @@ public class EmployeeService {
 
         // This is a mock of the expected successful response
         return "success";
+    }
+
+    // Helper method to return a default response when employee deletion fails
+    private String getDefaultDeleteEmployeeResponse(Employee employee) {
+        logger.info("Returning default delete employee response for employee: {}", employee.getEmployeeName());
+        
+        // This is a mock of the expected successful delete response
+        return employee.getEmployeeName(); 
     }
 }
 

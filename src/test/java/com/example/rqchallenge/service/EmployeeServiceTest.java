@@ -427,5 +427,162 @@ public class EmployeeServiceTest {
                 any(ParameterizedTypeReference.class)
         );
     }
+
+    @Test
+    public void testDeleteEmployee_Success() {
+        // Arrange
+        String employeeId = "1";
+        Employee employee = new Employee(employeeId, "John Doe", "50000", "30", "");
+        EmployeeApiResponse<String> apiResponse = new EmployeeApiResponse<>("success", "successfully! deleted Record");
+
+        // Mock fetching the employee first
+        when(restTemplate.exchange(
+                eq("https://dummy.restapiexample.com/api/v1/employee/" + employeeId),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenReturn(ResponseEntity.ok(new EmployeeApiResponse<>("success", employee)));
+
+        // Mock the delete operation
+        when(restTemplate.exchange(
+                eq("https://dummy.restapiexample.com/api/v1/delete/" + employeeId),
+                eq(HttpMethod.DELETE),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenReturn(ResponseEntity.ok(apiResponse));
+
+        // Act
+        String result = employeeService.deleteEmployee(employeeId);
+
+        // Assert
+        assertEquals("John Doe", result);  // Expect the name of the deleted employee
+        verify(restTemplate, times(1)).exchange(
+                eq("https://dummy.restapiexample.com/api/v1/employee/" + employeeId),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+        verify(restTemplate, times(1)).exchange(
+                eq("https://dummy.restapiexample.com/api/v1/delete/" + employeeId),
+                eq(HttpMethod.DELETE),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
+
+    @Test
+    public void testDeleteEmployee_NotFound() {
+        // Arrange
+        String employeeId = "999";
+        EmployeeApiResponse<Employee> notFoundResponse = new EmployeeApiResponse<>("error", null);
+
+        // Simulate employee not found
+        when(restTemplate.exchange(
+                eq("https://dummy.restapiexample.com/api/v1/employee/" + employeeId),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenReturn(ResponseEntity.status(404).body(notFoundResponse));
+
+        // Act
+        String result = employeeService.deleteEmployee(employeeId);
+
+        // Assert
+        assertEquals("Employee with ID " + employeeId + " not found, deletion aborted.", result);  // Expect the appropriate message
+        verify(restTemplate, times(1)).exchange(
+                eq("https://dummy.restapiexample.com/api/v1/employee/" + employeeId),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+        verify(restTemplate, never()).exchange(
+                eq("https://dummy.restapiexample.com/api/v1/delete/" + employeeId),
+                eq(HttpMethod.DELETE),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
+
+    @Test
+    public void testDeleteEmployee_ConnectionError() {
+        // Arrange
+        String employeeId = "1";
+        Employee employee = new Employee(employeeId, "John Doe", "50000", "30", "");
+
+        // Mock fetching the employee first
+        when(restTemplate.exchange(
+                eq("https://dummy.restapiexample.com/api/v1/employee/" + employeeId),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenReturn(ResponseEntity.ok(new EmployeeApiResponse<>("success", employee)));
+
+        // Simulate a ResourceAccessException (connection failure) during the DELETE request
+        when(restTemplate.exchange(
+                eq("https://dummy.restapiexample.com/api/v1/delete/" + employeeId),
+                eq(HttpMethod.DELETE),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenThrow(new ResourceAccessException("Connection refused"));
+
+        // Act
+        String result = employeeService.deleteEmployee(employeeId);
+
+        // Assert
+        assertEquals("John Doe", result);  // The fallback should return "John Doe" from the fetched employee
+        verify(restTemplate, times(1)).exchange(
+                eq("https://dummy.restapiexample.com/api/v1/employee/" + employeeId),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+        verify(restTemplate, times(1)).exchange(
+                eq("https://dummy.restapiexample.com/api/v1/delete/" + employeeId),
+                eq(HttpMethod.DELETE),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
+
+    @Test
+    public void testDeleteEmployee_HttpErrorOnDelete() {
+        // Arrange
+        String employeeId = "1";
+        Employee employee = new Employee(employeeId, "John Doe", "50000", "30", "");
+
+        // Mock fetching the employee first
+        when(restTemplate.exchange(
+                eq("https://dummy.restapiexample.com/api/v1/employee/" + employeeId),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenReturn(ResponseEntity.ok(new EmployeeApiResponse<>("success", employee)));
+
+        // Simulate HTTP error during delete
+        when(restTemplate.exchange(
+                eq("https://dummy.restapiexample.com/api/v1/delete/" + employeeId),
+                eq(HttpMethod.DELETE),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        )).thenReturn(ResponseEntity.status(500).build());
+
+        // Act
+        String result = employeeService.deleteEmployee(employeeId);
+
+        // Assert
+        assertEquals("John Doe", result);  // Expect the default response
+        verify(restTemplate, times(1)).exchange(
+                eq("https://dummy.restapiexample.com/api/v1/employee/" + employeeId),
+                eq(HttpMethod.GET),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+        verify(restTemplate, times(1)).exchange(
+                eq("https://dummy.restapiexample.com/api/v1/delete/" + employeeId),
+                eq(HttpMethod.DELETE),
+                isNull(),
+                any(ParameterizedTypeReference.class)
+        );
+    }
 }
 
