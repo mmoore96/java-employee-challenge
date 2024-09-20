@@ -4,6 +4,8 @@ import com.example.rqchallenge.model.Employee;
 import com.example.rqchallenge.model.CreateEmployeeRequest;
 import com.example.rqchallenge.service.EmployeeService;
 
+import io.swagger.v3.oas.annotations.tags.Tag;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,6 +19,7 @@ import java.util.Map;
 
 @RestController
 @RequestMapping("/v1")
+@Tag(name = "Employee", description = "Employee Management")
 public class EmployeeController {
 
     private static final Logger logger = LoggerFactory.getLogger(EmployeeController.class);
