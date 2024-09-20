@@ -28,6 +28,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 @ExtendWith(SpringExtension.class)
@@ -250,6 +251,40 @@ public class EmployeeControllerTest {
 
         // Verify that the service method was called once
         verify(employeeService, times(1)).createEmployee(any(CreateEmployeeRequest.class));
+    }
+
+    @Test
+    public void testDeleteEmployee_Success() throws Exception {
+        // Arrange
+        String employeeId = "1";
+        String deletedEmployeeName = "John Doe";
+
+        when(employeeService.deleteEmployee(employeeId)).thenReturn(deletedEmployeeName);
+
+        // Act & Assert
+        mockMvc.perform(delete("/v1/employees/{id}", employeeId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isOk())
+                .andExpect(content().string(deletedEmployeeName));
+
+        // Verify that the service method was called once
+        verify(employeeService, times(1)).deleteEmployee(employeeId);
+    }
+
+    @Test
+    public void testDeleteEmployee_NotFound() throws Exception {
+        // Arrange
+        String employeeId = "99";
+
+        when(employeeService.deleteEmployee(employeeId)).thenReturn(null);  // Simulate not found
+
+        // Act & Assert
+        mockMvc.perform(delete("/v1/employees/{id}", employeeId)
+                .contentType(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound());
+
+        // Verify that the service method was called once
+        verify(employeeService, times(1)).deleteEmployee(employeeId);
     }
 }
 

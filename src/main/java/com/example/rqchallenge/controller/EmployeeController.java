@@ -152,8 +152,25 @@ public class EmployeeController {
             return ResponseEntity.status(500).body("Failed to create employee");
         }
     }
-    //
-    // @DeleteMapping("/{id}")
-    // ResponseEntity<String> deleteEmployeeById(@PathVariable String id);
 
+    /**
+     * Delete an employee by ID.
+     *
+     * @param id The ID of the employee to delete.
+     * @return ResponseEntity containing the name of the deleted employee or a 404 status if not found.
+     */
+    @DeleteMapping("/employees/{id}")
+    public ResponseEntity<String> deleteEmployeeById(@PathVariable String id) {
+        logger.info("Received request to delete employee with ID '{}'.", id);
+
+        String deletedEmployeeName = employeeService.deleteEmployee(id);
+
+        if (deletedEmployeeName == null || deletedEmployeeName.isEmpty()) {
+            logger.warn("Employee with ID '{}' not found or could not be deleted.", id);
+            return ResponseEntity.notFound().build();
+        } else {
+            logger.info("Successfully deleted employee with ID '{}', Name: '{}'.", id, deletedEmployeeName);
+            return ResponseEntity.ok(deletedEmployeeName);
+        }
+    }
 }
